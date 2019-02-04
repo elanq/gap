@@ -37,6 +37,11 @@ func (s *ScreenSize) Width() int64 {
 	return s.width
 }
 
+//Separator is line to separate between left and right window
+func (s *ScreenSize) Separator() int64 {
+	return s.width / 2
+}
+
 func execCommand() ([]byte, error) {
 	cmd := exec.Command("bash", "-c", cmdGetScreen)
 	out, err := cmd.Output()
