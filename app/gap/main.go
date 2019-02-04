@@ -1,7 +1,18 @@
 package main
 
-import "fmt"
+import (
+	"log"
+
+	"github.com/elanq/gap"
+)
 
 func main() {
-	fmt.Println("hello")
+	screenSize, err := gap.GetScreenSize()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println(screenSize.Height())
+	log.Println(screenSize.Width())
+
 }
