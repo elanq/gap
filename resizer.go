@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	horizontalGap, verticalGap = 0.1, 0.1
+	horizontalGap, verticalGap = 0.01, 0.03
 )
 
 var (
@@ -28,6 +28,7 @@ type windowSize struct {
 
 //Application represents window application that should be resized
 type Application struct {
+	isLeft   bool
 	name     string
 	location point
 	size     windowSize
@@ -49,70 +50,73 @@ func (a *Application) Validate() error {
 	return nil
 }
 
+//Left sets current Application properties to left display
+func (a *Application) Left(screen Screen) *Application {
+	a.isLeft = true
+	a.size = calculateWindow(screen)
+	a.location = point{
+		x: int64((float64(horizontalGap) / 100) * float64(screen.Width())),
+		y: int64((float64(verticalGap) / 100) * float64(screen.Height())),
+	}
+
+	return a
+}
+
+//Right sets current Application properties to right display
+func (a *Application) Right(screen Screen) *Application {
+	a.isLeft = false
+	temp := float64(2*horizontalGap) / 100
+	a.size = calculateWindow(screen)
+	a.location = point{
+		x: int64((float64(screen.Width()) * temp) + float64(a.size.width)),
+		y: int64((float64(verticalGap) / 100) * float64(screen.Height())),
+	}
+
+	return a
+}
+
+//IsLeft checks whether Application is on the left side of the screen. If false the screen is on the right
+func (a *Application) IsLeft() bool {
+	return a.isLeft
+}
+
+//Position prints formatted window position represented by {x, y}
+func (a *Application) Position() string {
+	return fmt.Sprintf("{%d, %d}", a.location.x, a.location.y)
+}
+
+//Size prints formatted window size represented by {width, height}
+func (a *Application) Size() string {
+	return fmt.Sprintf("{%d, %d}", a.size.width, a.size.height)
+}
+
 //Resizer represents osascript command to resize window
 type Resizer struct {
 	app *Application
 }
 
-//Left resizes current Application to left display
-func (r *Resizer) Left(app *Application) error {
+//Do resizes current application based on its properties
+func (r *Resizer) Do(app *Application) error {
 	if err := app.Validate(); err != nil {
 		return err
-	}
-
-	screenSize, err := GetScreenSize()
-	if err != nil {
-		return err
-	}
-
-	app.size = calculateWindow(screenSize)
-	app.location = point{
-		x: int64((float64(horizontalGap) / 100) * float64(screenSize.Width())),
-		y: int64((float64(verticalGap) / 100) * float64(screenSize.Height())),
 	}
 	r.app = app
 
 	return r.resize()
-}
-
-//Right resizes current Application to right display
-func (r *Resizer) Right(app *Application) error {
-	if err := app.Validate(); err != nil {
-		return err
-	}
-
-	screenSize, err := GetScreenSize()
-	if err != nil {
-		return err
-	}
-
-	temp := float64(2*horizontalGap) / 100
-	app.size = calculateWindow(screenSize)
-	app.location = point{
-		x: int64((float64(screenSize.Width()) * temp) + float64(app.size.width)),
-		y: int64((float64(verticalGap) / 100) * float64(screenSize.Height())),
-	}
-	r.app = app
-
-	return r.resize()
-}
-
-func (r *Resizer) printWindowFormat() string {
-	format := fmt.Sprintf("{%d, %d, %d, %d}",
-		r.app.location.x,
-		r.app.location.y,
-		r.app.size.width,
-		r.app.size.height,
-	)
-	return format
 }
 
 func (r *Resizer) resize() error {
 	cmds := []string{
 		"-e",
-		`'tell application "` + r.app.name + `"'`,
+		`'tell application "System Events" to tell process "` + r.app.name + `"'`,
 		"-e",
-		`'set bounds of front window to ` + r.printWindowFormat() + `'`,
+		`tell window 1`,
+		"-e",
+		`set position to ` + r.app.Position(),
+		"-e",
+		`set size to ` + r.app.Size(),
+		"-e",
+		"'end tell'",
 		"-e",
 		"'end tell'",
 	}
@@ -126,7 +130,7 @@ func (r *Resizer) resize() error {
 }
 
 //calculate width and height of the window
-func calculateWindow(size *ScreenSize) windowSize {
+func calculateWindow(size Screen) windowSize {
 	window := windowSize{
 		width:  windowHeight(float64(size.Height())),
 		height: windowWidth(float64(size.Width())),

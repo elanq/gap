@@ -6,9 +6,9 @@ import (
 	"strings"
 )
 
-const cmdGetScreen = `
-system_profiler SPDisplaysDataType | grep Resolution | awk '/Resolution/{print $2}{print $4}'
-`
+const (
+	cmdGetScreen = `sres`
+)
 
 //Screen is interface for screen size
 type Screen interface {
@@ -49,7 +49,7 @@ func (s *ScreenSize) Separator() int64 {
 }
 
 func execCommand() ([]byte, error) {
-	cmd := exec.Command("bash", "-c", cmdGetScreen)
+	cmd := exec.Command(cmdGetScreen)
 	out, err := cmd.Output()
 	return out, err
 }
@@ -58,8 +58,9 @@ func parseOutput(out []byte) (*ScreenSize, error) {
 	var screenSize *ScreenSize
 	var err error
 
-	strForm := string(out)
-	sizes := strings.Split(strForm, "\n")
+	temp := string(out)
+	strForm := strings.TrimSpace(temp)
+	sizes := strings.Split(strForm, ";")
 	width, err := strconv.ParseInt(sizes[0], 10, 64)
 	if err != nil {
 		return screenSize, err
