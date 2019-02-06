@@ -1,0 +1,7 @@
+#!/bin/bash
+
+rez=$(./bin/sres.py)
+
+printf '%s\n' $rez
+
+exit 0

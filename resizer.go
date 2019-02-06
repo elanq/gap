@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	horizontalGap, verticalGap = 10.0, 10.0
+	horizontalGap, verticalGap = 0.1, 0.1
 )
 
 var (
@@ -67,8 +67,8 @@ func (r *Resizer) Left(app *Application) error {
 
 	app.size = calculateWindow(screenSize)
 	app.location = point{
-		x: horizontalGap * screenSize.Width(),
-		y: verticalGap * screenSize.Height(),
+		x: int64((float64(horizontalGap) / 100) * float64(screenSize.Width())),
+		y: int64((float64(verticalGap) / 100) * float64(screenSize.Height())),
 	}
 	r.app = app
 
@@ -86,11 +86,11 @@ func (r *Resizer) Right(app *Application) error {
 		return err
 	}
 
-	temp := int64(2 * horizontalGap)
+	temp := float64(2*horizontalGap) / 100
 	app.size = calculateWindow(screenSize)
 	app.location = point{
-		x: (screenSize.Width() * temp) + app.size.width,
-		y: verticalGap * screenSize.Height(),
+		x: int64((float64(screenSize.Width()) * temp) + float64(app.size.width)),
+		y: int64((float64(verticalGap) / 100) * float64(screenSize.Height())),
 	}
 	r.app = app
 
@@ -99,10 +99,11 @@ func (r *Resizer) Right(app *Application) error {
 
 func (r *Resizer) printWindowFormat() string {
 	format := fmt.Sprintf("{%d, %d, %d, %d}",
-		r.app.location.x/100,
-		r.app.location.y/100,
-		r.app.size.width/100,
-		r.app.size.height/100)
+		r.app.location.x,
+		r.app.location.y,
+		r.app.size.width,
+		r.app.size.height,
+	)
 	return format
 }
 
@@ -124,31 +125,22 @@ func (r *Resizer) resize() error {
 
 }
 
-func calculatePoint(size ScreenSize) point {
-	point := point{
-		x: 0,
-		y: 0,
-	}
-
-	return point
-}
-
 //calculate width and height of the window
 func calculateWindow(size *ScreenSize) windowSize {
 	window := windowSize{
-		width:  windowHeight(size.Height()),
-		height: windowWidth(size.Width()),
+		width:  windowHeight(float64(size.Height())),
+		height: windowWidth(float64(size.Width())),
 	}
 
 	return window
 }
 
-func windowHeight(height int64) int64 {
-	temp := int64(100 - (2 * horizontalGap))
-	return height * temp
+func windowHeight(height float64) int64 {
+	temp := float64(100 - (2 * horizontalGap))
+	return int64(height * (temp / 100))
 }
 
-func windowWidth(width int64) int64 {
-	temp := int64(100 - (3 * verticalGap))
-	return (width * temp) / 2
+func windowWidth(width float64) int64 {
+	temp := float64(100 - (3 * verticalGap))
+	return int64((width * (temp / 100)) / 2)
 }

@@ -10,6 +10,12 @@ const cmdGetScreen = `
 system_profiler SPDisplaysDataType | grep Resolution | awk '/Resolution/{print $2}{print $4}'
 `
 
+//Screen is interface for screen size
+type Screen interface {
+	Height() float64
+	Width() float64
+}
+
 //ScreenSize represents current display screen size
 type ScreenSize struct {
 	height int64
@@ -28,13 +34,13 @@ func GetScreenSize() (*ScreenSize, error) {
 }
 
 //Height returns screen height
-func (s *ScreenSize) Height() int64 {
-	return s.height
+func (s *ScreenSize) Height() float64 {
+	return float64(s.height)
 }
 
 //Width returns screen width
-func (s *ScreenSize) Width() int64 {
-	return s.width
+func (s *ScreenSize) Width() float64 {
+	return float64(s.width)
 }
 
 //Separator is line to separate between left and right window
