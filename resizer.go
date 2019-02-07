@@ -53,11 +53,7 @@ func (a *Application) Validate() error {
 //Left sets current Application properties to left display
 func (a *Application) Left(screen Screen) *Application {
 	a.isLeft = true
-	a.size = calculateWindow(screen)
-	a.location = point{
-		x: int64((float64(horizontalGap) / 100) * float64(screen.Width())),
-		y: int64((float64(verticalGap) / 100) * float64(screen.Height())),
-	}
+	a.calculate(screen)
 
 	return a
 }
@@ -65,12 +61,7 @@ func (a *Application) Left(screen Screen) *Application {
 //Right sets current Application properties to right display
 func (a *Application) Right(screen Screen) *Application {
 	a.isLeft = false
-	temp := float64(2*horizontalGap) / 100
-	a.size = calculateWindow(screen)
-	a.location = point{
-		x: int64((float64(screen.Width()) * temp) + float64(a.size.width)),
-		y: int64((float64(verticalGap) / 100) * float64(screen.Height())),
-	}
+	a.calculate(screen)
 
 	return a
 }
@@ -88,6 +79,28 @@ func (a *Application) Position() string {
 //Size prints formatted window size represented by {width, height}
 func (a *Application) Size() string {
 	return fmt.Sprintf("{%d, %d}", a.size.width, a.size.height)
+}
+
+//calculate calculates window size and position
+func (a *Application) calculate(screen Screen) {
+	height := windowHeight(screen.Height())
+	width := leftWindowWidth(screen.Width())
+	pointX, pointY := leftPoint(screen)
+
+	if !a.IsLeft() {
+		pointX, pointY = rightPoint(screen, width, pointY)
+		width = rightWindowWidth(pointX, width)
+	}
+
+	a.size = windowSize{
+		height: height,
+		width:  width,
+	}
+
+	a.location = point{
+		x: pointX,
+		y: pointY,
+	}
 }
 
 //Resizer represents osascript command to resize window
@@ -129,22 +142,28 @@ func (r *Resizer) resize() error {
 
 }
 
-//calculate width and height of the window
-func calculateWindow(size Screen) windowSize {
-	window := windowSize{
-		width:  windowHeight(float64(size.Height())),
-		height: windowWidth(float64(size.Width())),
-	}
-
-	return window
-}
-
 func windowHeight(height float64) int64 {
-	temp := float64(100 - (2 * horizontalGap))
-	return int64(height * (temp / 100))
+	wHeight := height * (1 - (2 * verticalGap))
+	return int64(wHeight)
 }
 
-func windowWidth(width float64) int64 {
-	temp := float64(100 - (3 * verticalGap))
-	return int64((width * (temp / 100)) / 2)
+func leftWindowWidth(width float64) int64 {
+	lwWidth := (width - (3*horizontalGap)*width) / 2
+	return int64(lwWidth)
+}
+
+func rightWindowWidth(rightPointX int64, leftWindowWidth int64) int64 {
+	return rightPointX + leftWindowWidth
+}
+
+func rightPoint(screen Screen, leftWindowWidth int64, pY int64) (int64, int64) {
+	pX := int64(((2 * horizontalGap) * screen.Width())) + leftWindowWidth
+	return pX, pY
+}
+
+func leftPoint(screen Screen) (int64, int64) {
+	pX := horizontalGap * screen.Width()
+	pY := verticalGap * screen.Height()
+
+	return int64(pX), int64(pY)
 }
