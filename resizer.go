@@ -123,16 +123,17 @@ func (r *Resizer) resize() error {
 		"-e",
 		`'tell application "System Events" to tell process "` + r.app.name + `"'`,
 		"-e",
-		`tell window 1`,
+		`'tell window 1'`,
 		"-e",
-		`set position to ` + r.app.Position(),
+		`'set position to ` + r.app.Position() + "'",
 		"-e",
-		`set size to ` + r.app.Size(),
+		`'set size to ` + r.app.Size() + "'",
 		"-e",
 		"'end tell'",
 		"-e",
 		"'end tell'",
 	}
+	log.Println(cmds)
 	cmd, err := exec.Command("osascript", cmds...).Output()
 	log.Println(string(cmd))
 	if err != nil {

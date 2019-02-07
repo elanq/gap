@@ -12,12 +12,10 @@ func main() {
 		log.Println(err)
 	}
 
-	log.Println(s.Height())
-	log.Println(s.Width())
-	//	resizer := &gap.Resizer{}
-	//	app1 := gap.NewApplication("Notion")
-	//	app2 := gap.NewApplication("ITerm2")
-	//
-	//	log.Println(resizer.Left(app1))
-	//	log.Println(resizer.Right(app2))
+	resizer := &gap.Resizer{}
+	app1 := gap.NewApplication("Notion").Left(s)
+	app2 := gap.NewApplication("ITerm2").Right(s)
+
+	log.Println(resizer.Do(app1))
+	log.Println(resizer.Do(app2))
 }
