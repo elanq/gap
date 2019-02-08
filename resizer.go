@@ -89,7 +89,6 @@ func (a *Application) calculate(screen Screen) {
 
 	if !a.IsLeft() {
 		pointX, pointY = rightPoint(screen, width, pointY)
-		width = rightWindowWidth(pointX, width)
 	}
 
 	a.size = windowSize{
