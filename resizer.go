@@ -2,7 +2,6 @@ package gap
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"os/exec"
 )
@@ -26,107 +25,25 @@ type windowSize struct {
 	width  int64
 }
 
-//Application represents window application that should be resized
-type Application struct {
-	isLeft   bool
-	name     string
-	location point
-	size     windowSize
-}
-
-//NewApplication creates instance of Application
-func NewApplication(name string) *Application {
-	return &Application{
-		name: name,
-	}
-}
-
-//Validate validates application
-func (a *Application) Validate() error {
-	if a.name == "" {
-		return ErrEmptyAppName
-	}
-
-	return nil
-}
-
-//Left sets current Application properties to left display
-func (a *Application) Left(screen Screen) *Application {
-	a.isLeft = true
-	a.calculate(screen)
-
-	return a
-}
-
-//Right sets current Application properties to right display
-func (a *Application) Right(screen Screen) *Application {
-	a.isLeft = false
-	a.calculate(screen)
-
-	return a
-}
-
-//IsLeft checks whether Application is on the left side of the screen. If false the screen is on the right
-func (a *Application) IsLeft() bool {
-	return a.isLeft
-}
-
-//Position prints formatted window position represented by {x, y}
-func (a *Application) Position() string {
-	return fmt.Sprintf("{%d, %d}", a.location.x, a.location.y)
-}
-
-//Size prints formatted window size represented by {width, height}
-func (a *Application) Size() string {
-	return fmt.Sprintf("{%d, %d}", a.size.width, a.size.height)
-}
-
-//calculate calculates window size and position
-func (a *Application) calculate(screen Screen) {
-	height := windowHeight(screen.Height())
-	width := leftWindowWidth(screen.Width())
-	pointX, pointY := leftPoint(screen)
-
-	if !a.IsLeft() {
-		pointX, pointY = rightPoint(screen, width, pointY)
-	}
-
-	a.size = windowSize{
-		height: height,
-		width:  width,
-	}
-
-	a.location = point{
-		x: pointX,
-		y: pointY,
-	}
-}
-
-//Resizer represents osascript command to resize window
-type Resizer struct {
-	app *Application
-}
-
-//Do resizes current application based on its properties
-func (r *Resizer) Do(app *Application) error {
+//Resize resizes current application based on its properties
+func Resize(app *Application) error {
 	if err := app.Validate(); err != nil {
 		return err
 	}
-	r.app = app
 
-	return r.resize()
+	return resize(app)
 }
 
-func (r *Resizer) resize() error {
+func resize(app *Application) error {
 	cmds := []string{
 		"-e",
-		`'tell application "System Events" to tell process "` + r.app.name + `"'`,
+		`'tell application "System Events" to tell process "` + app.name + `"'`,
 		"-e",
 		`'tell window 1'`,
 		"-e",
-		`'set position to ` + r.app.Position() + "'",
+		`'set position to ` + app.Position() + "'",
 		"-e",
-		`'set size to ` + r.app.Size() + "'",
+		`'set size to ` + app.Size() + "'",
 		"-e",
 		"'end tell'",
 		"-e",
@@ -139,7 +56,6 @@ func (r *Resizer) resize() error {
 		return err
 	}
 	return nil
-
 }
 
 func windowHeight(height float64) int64 {
