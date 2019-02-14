@@ -77,3 +77,25 @@ func (a *Application) calculate(screen Screen) {
 		y: pointY,
 	}
 }
+
+func windowHeight(height float64) int64 {
+	wHeight := height * (1 - (2 * verticalGap))
+	return int64(wHeight)
+}
+
+func leftWindowWidth(width float64) int64 {
+	lwWidth := (width - (3*horizontalGap)*width) / 2
+	return int64(lwWidth)
+}
+
+func rightPoint(screen Screen, leftWindowWidth int64, pY int64) (int64, int64) {
+	pX := int64(((2 * horizontalGap) * screen.Width())) + leftWindowWidth
+	return pX, pY
+}
+
+func leftPoint(screen Screen) (int64, int64) {
+	pX := horizontalGap * screen.Width()
+	pY := verticalGap * screen.Height()
+
+	return int64(pX), int64(pY)
+}
