@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+# coding: UTF-8
+
+# resize is wrapper for gap command
+# this script capture keyboard shortcut and get current active window
+# must be executed as root
+
+import sys
+import keyboard
+from AppKit import NSWorkspace
+
+def checkApp():
+    activeAppName = NSWorkspace.sharedWorkspace().activeApplication()['NSApplicationName']
+    return activeAppName
+
+def onKeyPressed():
+    print(checkApp())
+
+def main():
+    while True:
+        try:
+            if keyboard.is_pressed('~'):
+                onKeyPressed()
+                break
+        except:
+            break
+
+if __name__ == '__main__':
+    sys.exit(main())
